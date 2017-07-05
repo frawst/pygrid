@@ -170,7 +170,7 @@ while(play):
 					damage = random(1,12)
 					if (damage > Player[2]):
 						damage = Player[2]
-					print('BOSS attack hits dealing ', damage, 'damage! (1d8)')
+					print('BOSS attack hits dealing ', damage, 'damage! (1d12)')
 					Player[2] = Player[2] - damage
 				else:
 					print('You blocked the monster\'s attack!')
