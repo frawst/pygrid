@@ -1,5 +1,7 @@
 # pygrid
 Python grid based mini-rpg that runs from command prompt
+Requires Python 3.x
+Recommended Python 3.6
 
 ## Contributing
 Feel free to fork this project and create as you see fit. Pull requests should have the contributor's name added to main.py's documentation below the original creator. Pull requests into main will only contain works by the original creator, and subsequent works will be maintained in their own branches.
