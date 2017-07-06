@@ -1,0 +1,64 @@
+changelog
+    0.0.1
+        Initial game functionality, zone storage, basic combat, basic character
+        statistics, command inputs
+
+    0.0.2
+        Added boss fights to the end of the zone
+
+    0.0.3
+        Complete code restructure
+            Moved level information to it's own file
+            Separating player information
+            Rebuilt game loop
+        Can now build multiple levels in unique ways
+        Added stat upgrades chance to drop from monster fights
+
+    0.0.4
+        4 Levels
+        Unique bosses on each floor
+        Expanded player stats
+        Loot reworked
+            - added stat gems
+            - increased potion drop rate
+        Boss doors now glow
+        Difficulty now flexes with progression
+        Added MAP functionality
+
+    0.0.5
+        Added an intro story
+        Added ability to restart the game if you lose
+        Added a shop
+        Added silver found and chests opened to stats
+        Added basic save data file to track if the intro has been viewed or not
+
+    0.1.0
+        Finalized initial code. Game functional. Beatable. Etc.
+        Still needs mad work if it's going to be 'playable'
+
+    0.1.1
+        Shop command bug fixed
+
+    0.1.2
+        Added more monster death messages
+        Added unique player death messages
+
+    0.1.3
+        Added screen updates on event conclusions
+        - Graphics, basically.
+        Changed how combat is handled
+        Added end-of-combat stats
+        Updated how some information is displayed
+
+    0.1.4
+        Added maxHP Crystals
+        Hella bunch of bug fixes
+        - Restart game? was broken.
+        - Continue to next zone was broken
+        - Some other stuff was broken
+        Fixed intro a bit
+        Added a loop layer... :S
+        Code is getting super spaghetti, prolly wanna dec some funcs for this
+
+    0.1.4.1
+        Moved changelog to it's own file
