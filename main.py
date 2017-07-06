@@ -9,7 +9,7 @@ date of creation
     July 5 2017
 
 version
-    0.0.5
+    0.1.0
 
 changelog
     0.0.1
@@ -44,6 +44,10 @@ changelog
         Added a shop
         Added silver found and chests opened to stats
         Added basic save data file to track if the intro has been viewed or not
+
+    0.1.0
+        Finalized initial code. Game functional. Beatable. Etc.
+        Still needs mad work if it's going to be 'playable'
 
 #TODO: Add a homescreen
 #TODO: Add graphics- Map, Stats, Inventory
