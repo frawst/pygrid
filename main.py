@@ -52,6 +52,10 @@ changelog
     0.1.1
         Shop command bug fixed
 
+    0.1.2
+        Added more monster death messages
+        Added unique player death messages
+
 #TODO: Add a homescreen
 #TODO: Add graphics- Map, Stats, Inventory
 #TODO: Create infinite-dungeon
@@ -401,7 +405,16 @@ while (play):
                             print ('<< blocked.')
 
                 if monhp <= 0:
-                    print('As you finish your attack the creature howls and falls to the ground in a heap.\nYou search the room for loot. The door is unlocked.')
+                    msg = random(3)
+                    if msg == 0:
+                        print('As you finish your attack the creature howls and falls to the ground in a heap.')
+                    elif msg == 1:
+                        print('You deal the final blow, causing the creatures brain to explode over the walls.')
+                    elif msg == 2:
+                        print('The creature lunges towards you with it\'s mouth open. You lunge your sword into it\'s throat.')
+                    else:
+                        print('The creature\'s inner workings spill onto the floor as it collapses before you.')
+                    print('You search the room for loot. The door is unlocked.')
                     slain += 1
                     waiting(5)
                     loot = random(101)
@@ -505,6 +518,22 @@ while (play):
         #print(zone)
 
     #ENDLEVEL
+    endmsg = random(4)
+    if endmsg == 0:
+        print('The creature roars as it\'s arm crashes onto your head, crushing your spine.')
+    elif endmsg == 1:
+        print('You feel a wash of cold come over you as the flavor of iron fills your mouth.')
+        print('Your mouth washes the floor with blood.')
+    elif endmsg == 2:
+        print('You open your eyes to a bright shining light, you peer into the eyes of an angel.')
+        print('The last thing you remember is seeing your own ass for the first time.')
+    elif endmsg == 3:
+        print('You lift your head from your shield to see the foul creature\'s jaw bearing down on you.')
+        print('It\'s breath smells foul, as it takes a bite out of your face.')
+    else:
+        print('The creature disappears.')
+        waiting(3)
+        print('Suddenly you lose all feeling below your neck as you hear the loud snap of your spine breaking.')    
     print('Your adventure is over. Your final stats were:')
     print('Attack: %i\nDefence: %i\nPotions: %i\nSilver: %i\nMonsters Slain: %i\nChests Opened: %i\nSilver Found: %i\nBonuses: +%i Accuracy, +%i Damage' %
         (playatk, playdef, playpots, playsilver, slain, chestsfound, silverfound, playaccboost, playdmgboost))
