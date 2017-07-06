@@ -9,7 +9,7 @@ date of creation
     July 5 2017
 
 version
-    0.0.3
+    0.0.5
 
 changelog
     0.0.1
