@@ -9,7 +9,7 @@ date of creation
     July 5 2017
 
 version
-    0.1.0
+    0.1.3
 
 changelog
     0.0.1
@@ -56,9 +56,16 @@ changelog
         Added more monster death messages
         Added unique player death messages
 
+    0.1.3
+        Added screen updates on event conclusions
+        - Graphics, basically.
+        Changed how combat is handled
+        Added end-of-combat stats
+        Updated how some information is displayed
+
 #TODO: Add a homescreen
-#TODO: Add graphics- Map, Stats, Inventory
 #TODO: Create infinite-dungeon
+#TODO: Set up game saves
 
 """
 # Global Imports
@@ -110,6 +117,9 @@ def generateZone(fields):
 
     return newzone
 
+def waitkey():
+    input('Press enter to continue.')
+
 def getCommand():
     command = input('>> ')
     command = command.lower()
@@ -127,7 +137,8 @@ def drawMap(zone, playx, playy):
     gridx = zone['grid'][0]
     gridy = zone['grid'][1]
     tup = (playx,playy)
-    print('# = Undiscovered, - = Empty, * = Your Location')
+    print('***     DUNGEON MAP: FLOOR %i     ***' % level)
+    print(' # = Undiscovered\n - = Empty\n * = Your Location')
     #print('grid x: %i' % gridx)
     #print('grid y: %i' % gridy)
     for y in reversed(range(gridy)):
@@ -146,9 +157,16 @@ def drawMap(zone, playx, playy):
             except:
                 line.append('#')
                 #print(line)
+        print('      |', end="")
         for z in range(gridx):
-            print('%s' % line[z], end=" ")
+            print('%s' % line[z], end="|")
+        #print('\n       ----------', end="")
     print('')
+
+def clearScreen():
+    for i in range(50):
+        print('\n')
+
 
 
 play = True
@@ -198,6 +216,13 @@ while (play):
 
     while (play and not bosskilled):
         moved = False
+        waitkey()
+        clearScreen()
+        drawMap(zone, playposx, playposy)
+        print('\nHP: %i/%i  Potions: %i  Silver: %i'
+        % (playhp, maxhp, playpots, playsilver))
+        for i in range(2):
+            print('\n')
 
         #Get a command input
         command = getCommand()
@@ -363,6 +388,7 @@ while (play):
                     silverfound += gain
                 else:
                     print('The chest was empty.')
+
             #TODO: Try and get these numbers balanced
             elif state == 2:
                 zone[(playposx,playposy)] = 0
@@ -370,6 +396,7 @@ while (play):
                 monhp = random(4,20) + (bossmod - 2) * 10
                 mondmg = random(5,10) + (bossmod - 2)
                 mondice = random(6,11) + (bossmod - 2)
+                waiting(10)
                 # diff = int((monhp + mondmg + mondice) / 10 * (bossmod - 2))
                 # if diff == 1:
                 #   print('It\'s a fluffy little bunny, aww!')
@@ -384,25 +411,35 @@ while (play):
 
                 #Combat Loop
                 #TODO: Allow a setting to wait x seconds for combat instead
+                youblocked = 0
+                mobblocked = 0
+                yourdamage = 0
+                mobdamage = 0
+                yourhits = 0
+                mobhits = 0
                 while (monhp > 0 and playhp > 0):
                     if monhp > 0 and playhp > 0:
-                        time.sleep(1)
                         if random(1,playatk) + playaccboost > random(1,mondice):
                             hit = random(1,playdmg) + playdmgboost
-                            print ('>> hit for %i damage' 
-                                % hit)
+                            # print ('>> hit for %i damage' 
+                            #     % hit)
                             monhp -= hit
+                            yourdamage += hit
+                            yourhits += 1
                         else:
-                            print ('>> blocked.')
+                            mobblocked += 1
+                            # print ('>> blocked.')
                     if monhp > 0 and playhp > 0:
-                        time.sleep(1)
                         if random(1,mondice) > random(1, playdef):
                             hit = random(1,mondmg) + (int(bossmod/2 - 0.5))
-                            print ('<< hit for %i damage.'
-                                % hit)
+                            # print ('<< hit for %i damage.'
+                            #     % hit)
                             playhp -= hit
+                            mobdamage += hit
+                            mobhits += 1
                         else:
-                            print ('<< blocked.')
+                            youblocked += 1
+                            # print ('<< blocked.')
 
                 if monhp <= 0:
                     msg = random(3)
@@ -447,8 +484,12 @@ while (play):
                     print('You find %i silver on the creatures person.' % loot)
                     playsilver += loot
                     silverfound += loot
+                    print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.'
+                        % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked))
                 if playhp <= 0:
                     play = False
+                    print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.'
+                        % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked))
 
             elif state == 99:
                 zone[(playposx,playposy)] = 0
@@ -458,29 +499,43 @@ while (play):
                 monhp = 15*bossmod
                 mondice = 7+bossmod
 
+                yourdamage = 0
+                youblocked = 0
+                mobdamage = 0
+                mobblocked = 0
+                yourhits = 0
+                mobhits = 0
+
+                waiting(10)
                 while (monhp > 0 and playhp > 0):
                     if monhp > 0 and playhp > 0:
-                        time.sleep(1)
                         if random(1,playatk) + playaccboost > random(1,mondice):
                             hit = random(1,playdmg) + playdmgboost
-                            print ('>> hit for %i damage' 
-                                % hit)
+                            # print ('>> hit for %i damage' 
+                            #     % hit)
                             monhp -= hit
+                            yourdamage += hit
+                            yourhits += 1
                         else:
-                            print ('>> blocked.')
+                            # print ('>> blocked.')
+                            mobblocked += 1
                     if monhp > 0 and playhp > 0:
-                        time.sleep(1)
                         if random(1,mondice) > random(1, playdef):
                             hit = random(1,mondice)
-                            print ('<< hit for %i damage.'
-                                % hit)
+                            # print ('<< hit for %i damage.'
+                            #     % hit)
                             playhp -= hit
+                            mobdamage += hit
+                            mobhits += 1
                         else:
-                            print ('<< blocked.')
+                            # print ('<< blocked.')
+                            youblocked += 1
                 if monhp <= 0:
                     print('You have conquered %s! A great energy overwhelms you.'
                         % bossname)
                     print('Stats increased. HP restored to max.')
+                    print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.'
+                        % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked))
                     maxhp += 10
                     playhp = maxhp
                     playdef += 2
@@ -488,6 +543,9 @@ while (play):
                     playdmgboost += 2
                     bosskilled = True
                     level += 1
+                if playhp <= 0:
+                    print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.'
+                        % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked))
 
             try:
                 if zone[(playposx+1,playposy)] == 99:
@@ -519,21 +577,23 @@ while (play):
 
     #ENDLEVEL
     endmsg = random(4)
-    if endmsg == 0:
+    if endmsg == 0 and playhp <= 0:
         print('The creature roars as it\'s arm crashes onto your head, crushing your spine.')
-    elif endmsg == 1:
+    elif endmsg == 1 and playhp <= 0:
         print('You feel a wash of cold come over you as the flavor of iron fills your mouth.')
         print('Your mouth washes the floor with blood.')
-    elif endmsg == 2:
+    elif endmsg == 2 and playhp <= 0:
         print('You open your eyes to a bright shining light, you peer into the eyes of an angel.')
         print('The last thing you remember is seeing your own ass for the first time.')
-    elif endmsg == 3:
+    elif endmsg == 3 and playhp <= 0:
         print('You lift your head from your shield to see the foul creature\'s jaw bearing down on you.')
         print('It\'s breath smells foul, as it takes a bite out of your face.')
-    else:
+    elif endmsg == 4 and playhp <= 0:
         print('The creature disappears.')
         waiting(3)
-        print('Suddenly you lose all feeling below your neck as you hear the loud snap of your spine breaking.')    
+        print('Suddenly you lose all feeling below your neck as you hear the loud snap of your spine breaking.')
+    else:
+        pass
     print('Your adventure is over. Your final stats were:')
     print('Attack: %i\nDefence: %i\nPotions: %i\nSilver: %i\nMonsters Slain: %i\nChests Opened: %i\nSilver Found: %i\nBonuses: +%i Accuracy, +%i Damage' %
         (playatk, playdef, playpots, playsilver, slain, chestsfound, silverfound, playaccboost, playdmgboost))
