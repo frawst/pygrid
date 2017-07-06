@@ -100,5 +100,6 @@ ENV/
 # mypy
 .mypy_cache/
 
-gamedata.txt
-Coders*
+gamedata*
+Coder*
+scratch*
