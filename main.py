@@ -49,6 +49,9 @@ changelog
         Finalized initial code. Game functional. Beatable. Etc.
         Still needs mad work if it's going to be 'playable'
 
+    0.1.1
+        Shop command bug fixed
+
 #TODO: Add a homescreen
 #TODO: Add graphics- Map, Stats, Inventory
 #TODO: Create infinite-dungeon
@@ -258,27 +261,27 @@ while (play):
                 inshop = True
                 print('****       Dungeon SHOPPE        ****')
                 print('** Type exit at any time to leave. **')
-                print('>> You have %i silver to spend' % silver)
+                print('You have %i silver to spend' % playsilver)
                 print('buypot - +1 potion - 10 silver')
                 print('healme - Refill HP to max - 35 silver')
                 print('updmg - +1 damage - 65 silver')
                 print('upacc - +1 accuracy - 100 silver')
                 while inshop:
-                    command = getCommand()
+                    command2 = getCommand()
                     try:
-                        if command == 'buypot' and silver >= 10:
+                        if command2 == 'buypot' and playsilver >= 10:
                             print('You purchase 1 potion for 10 silver')
                             playpots += 1
-                        elif command == 'healme' and silver >= 35:
+                        elif command2 == 'healme' and playsilver >= 35:
                             print('You are healed to max HP')
                             playhp = maxhp
-                        elif command == 'updmg' and silver >= 65:
+                        elif command2 == 'updmg' and playsilver >= 65:
                             print('Your damage is increased by 1!')
                             playdmgboost += 1
-                        elif command == 'upacc' and silver >= 100:
+                        elif command2 == 'upacc' and playsilver >= 100:
                             print('Your accuracy is increased by 1!')
                             playaccboost += 1
-                        elif command == 'exit':
+                        elif command2 == 'exit':
                             print('** Thanks for visiting the shop **')
                             inshop = False
                         else:
