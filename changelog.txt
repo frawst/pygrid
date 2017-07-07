@@ -87,3 +87,11 @@ changelog
 
     0.1.6
         Added basic game saving
+        0.1.6.2
+            Savegames store floor data
+
+    0.1.7
+        Title screen added
+        Help menu modified
+        Other UI elements modified
+        Added turbo mode as a standard feature (no waiting for anything)
