@@ -126,6 +126,7 @@ chestsfound = 0     #chests opened counter
 silverfound = 0     #total silver found in game counter
 
 viewedintro = 0     #has this user viewed the intro sequence before (bool as int)
+gameloaded = False
 
 waittimer = 1       #debug, allows swt0 command to eliminate waiting() timers from game
 
@@ -142,7 +143,7 @@ viewedintro = introdata['viewedintro']
 
 # Splash screen
 print('*****     Welcome to pygrid RPG      *****')
-print('*                v 0.1.5                 *')
+print('*                v 0.1.6.2               *')
 print('*     Created by Justyn Chaykowski       *')
 print('*                 ********               *')
 print('* If you\'d like to view the intro again  *')
@@ -175,7 +176,7 @@ if viewedintro == 0:
     viewedintro = 1
     savedata['introdata']['viewedintro'] = viewedintro
     np.save('savedata.npy', savedata)
-time.sleep(4)
+time.sleep(1)
 
 play = True #loop variable
 while (play):
@@ -190,17 +191,29 @@ while (play):
         print('You descend deeper into the dungeon.')
     
     # Load pertinent zone information, set player location, empty players room
-    zone = generateZone(levels[level])
-    bossname = zone['bossname']
-    lootmod = zone['lootmod']
-    potmod = zone['potmod']
-    monmod = zone['monmod']
-    bosshpmod = zone['bosshpmod']
-    bossdicemod = zone['bossdicemod']
-    bossdrop = zone['bossdrop']
-    playposx = 1
-    playposy = 1
-    zone[(playposx,playposy)] = 0
+    if gameloaded == False:
+        zone = generateZone(levels[level])
+        bossname = zone['bossname']
+        lootmod = zone['lootmod']
+        potmod = zone['potmod']
+        monmod = zone['monmod']
+        bosshpmod = zone['bosshpmod']
+        bossdicemod = zone['bossdicemod']
+        bossdrop = zone['bossdrop']
+        playposx = 1
+        playposy = 1
+        zone[(playposx,playposy)] = 0
+    elif gameloaded == True:
+        zone = savedata['zone']
+        bossname = zone['bossname']
+        lootmod = zone['lootmod']
+        potmod = zone['potmod']
+        monmod = zone['monmod']
+        bosshpmod = zone['bosshpmod']
+        bossdicemod = zone['bossdicemod']
+        bossdrop = zone['bossdrop']
+        print('Game load successful.')
+        gameloaded = False
 
     bosskilled = False  #loop var
     playalive = True    #loop var
@@ -230,6 +243,8 @@ while (play):
                 print('Are you sure? This will overwrite any past saves. (Y / N)')
                 command2 = getCommand()
                 if command2 == 'y' or command2 == 'yes':
+                    savedata['gamesave']['playposx'] = playposx
+                    savedata['gamesave']['playposy'] = playposy
                     savedata['gamesave']['playhp'] = playhp
                     savedata['gamesave']['maxhp'] = maxhp
                     savedata['gamesave']['playpots'] = playpots
@@ -246,6 +261,7 @@ while (play):
                     savedata['gamesave']['chestsfound'] = chestsfound
                     savedata['gamesave']['silverfound'] = silverfound
                     savedata['gamesave']['level'] = level
+                    savedata['zone'] = zone
                     #print('populated dictionary')
 
                     np.save('savedata.npy', savedata)
@@ -255,6 +271,8 @@ while (play):
                     print('Some error ocurred.')
             elif command == 'loadgame':
                 savedata = np.load('savedata.npy').item()
+                playposx = savedata['gamesave']['playposx']
+                playposy = savedata['gamesave']['playposy']
                 playhp = savedata['gamesave']['playhp']
                 maxhp = savedata['gamesave']['maxhp']
                 playpots = savedata['gamesave']['playpots']
@@ -271,9 +289,10 @@ while (play):
                 chestsfound = savedata['gamesave']['chestsfound']
                 silverfound = savedata['gamesave']['silverfound']
                 level = savedata['gamesave']['level']
+                zone = savedata['zone']
 
                 bosskilled = True
-                print('Game loaded...')
+                gameloaded = True
 
             elif command == 'quit':
                 play = False
@@ -466,7 +485,7 @@ while (play):
                 monhp = random(4,20) + (monmod * 10)
                 mondmg = random(6,10) + monmod
                 mondice = 7 + monmod
-                waiting(8*waittimer)
+                waiting(3*waittimer)
 
                 #Combat Loop
                 youblocked = 0
