@@ -9,7 +9,7 @@ date of creation
     July 5 2017
 
 version
-    0.1.4
+    0.1.5
 
 #TODO: Add a homescreen
 #TODO: Create infinite-dungeon
@@ -21,6 +21,8 @@ version
 from random import randrange as random
 import time
 import sys
+#import pickle
+import numpy as np
 
 # Modules
 from pygridlevels import levels
@@ -91,6 +93,15 @@ def clearScreen():
     for i in range(50):
         print('\n')
 
+
+# def save_obj(obj, name):
+#     with open('obj/'+ name + '.pkl', 'wb') as f:
+#         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+# def load_obj(name):
+#     with open('obj/' + name + '.pkl', 'rb') as f:
+#         return pickle.load(f)
+
 level = 1           #what floor are we on
 zone = { }          #current floors data
 
@@ -118,22 +129,20 @@ viewedintro = 0     #has this user viewed the intro sequence before (bool as int
 
 waittimer = 1       #debug, allows swt0 command to eliminate waiting() timers from game
 
-# Load save data, create some if it doesn't exist
+savedata = {'introdata':{'viewedintro': 0},'gamesave':{},}
+
 try:
-    savedata = open('gamedata.txt', 'r')
-    for line in savedata:
-        viewedintro = int(line)
-
+    savedata = np.load('savedata.npy').item()
 except:
-    savedata = open('gamedata.txt', 'w')
-    savedata.write('0')
-    savedata.close()
+    np.save('savedata.npy', savedata)
 
+introdata = savedata['introdata']
+viewedintro = introdata['viewedintro']
 
 
 # Splash screen
 print('*****     Welcome to pygrid RPG      *****')
-print('*                v.0.1.4                 *')
+print('*                v 0.1.5                 *')
 print('*     Created by Justyn Chaykowski       *')
 print('*                 ********               *')
 print('* If you\'d like to view the intro again  *')
@@ -163,9 +172,9 @@ if viewedintro == 0:
     time.sleep(2)
 
     # Write to save data that intro is viewed
-    with open('gamedata.txt', 'w') as savedata:
-        savedata.write('1')
-    savedata.close()
+    viewedintro = 1
+    savedata['introdata']['viewedintro'] = viewedintro
+    np.save('savedata.npy', savedata)
 time.sleep(4)
 
 play = True #loop variable
@@ -212,9 +221,60 @@ while (play):
         # All main game commands here
         try:
             if command == 'help':
-                print('The available commands are:\nMovement: n, e, s, w // shop, stats, quit')
+                print('The available commands are:\nMovement: n, e, s, w\nOthers: shop, stats, quit, savegame, loadgame')
+                print('**********')
                 print('Potions are used automatically in combat.')
-                print('Use your silver for potions, healing, and upgrades at the shop.')
+                print('Saved games restart your progress on this floor.')
+            elif command == 'savegame':
+                print('Loading a save restarts the floor you are on.')
+                print('Are you sure? This will overwrite any past saves. (Y / N)')
+                command2 = getCommand()
+                if command2 == 'y' or command2 == 'yes':
+                    savedata['gamesave']['playhp'] = playhp
+                    savedata['gamesave']['maxhp'] = maxhp
+                    savedata['gamesave']['playpots'] = playpots
+                    savedata['gamesave']['playsilver'] = playsilver
+                    savedata['gamesave']['playatk'] = playatk
+                    savedata['gamesave']['playdef'] = playdef
+                    savedata['gamesave']['playdmg'] = playdmg
+                    savedata['gamesave']['playaccboost'] = playaccboost
+                    savedata['gamesave']['playdmgboost'] = playdmgboost
+                    savedata['gamesave']['playdefboost'] = playdefboost
+                    savedata['gamesave']['playlootboost'] = playlootboost
+                    savedata['gamesave']['slain'] = slain
+                    savedata['gamesave']['bosseskilled'] = bosseskilled
+                    savedata['gamesave']['chestsfound'] = chestsfound
+                    savedata['gamesave']['silverfound'] = silverfound
+                    savedata['gamesave']['level'] = level
+                    #print('populated dictionary')
+
+                    np.save('savedata.npy', savedata)
+                elif command2 == 'n' or command2 == 'no':
+                    pass
+                else:
+                    print('Some error ocurred.')
+            elif command == 'loadgame':
+                savedata = np.load('savedata.npy').item()
+                playhp = savedata['gamesave']['playhp']
+                maxhp = savedata['gamesave']['maxhp']
+                playpots = savedata['gamesave']['playpots']
+                playsilver = savedata['gamesave']['playsilver']
+                playatk = savedata['gamesave']['playatk']
+                playdef = savedata['gamesave']['playdef']
+                playdmg = savedata['gamesave']['playdmg']
+                playaccboost = savedata['gamesave']['playaccboost']
+                playdmgboost = savedata['gamesave']['playdmgboost']
+                playdefboost = savedata['gamesave']['playdefboost']
+                playlootboost = savedata['gamesave']['playlootboost']
+                slain = savedata['gamesave']['slain']
+                bosseskilled = savedata['gamesave']['bosseskilled']
+                chestsfound = savedata['gamesave']['chestsfound']
+                silverfound = savedata['gamesave']['silverfound']
+                level = savedata['gamesave']['level']
+
+                bosskilled = True
+                print('Game loaded...')
+
             elif command == 'quit':
                 play = False
             elif command == 'kill':
@@ -225,9 +285,9 @@ while (play):
             elif command == 'swt0':
                 waittimer = 0
             elif command == 'resetintro':
-                with open('gamedata.txt', 'w') as savedata:
-                    savedata.write('0')
-                savedata.close()
+                viewedintro = 0
+                savedata['introdata']['viewedintro'] = viewedintro
+                np.save('savedata.npy', savedata)
                 print('The intro will play the next time you start the game.')
             elif command == 'stats':
                 print('Health: %i\nMax HP: %i\nAttack: %i\nDefence: %i\nPotions: %i\nSilver: %i\nBonuses: +%i Accuracy, +%i Damage, +%i Defence' %

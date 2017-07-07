@@ -84,3 +84,6 @@ changelog
 
         #TODO: Needs playtesting to figure out how the balancing is...
         COMMAND: swt0 removes the wait timer from the game for SPEEDY play!~~
+
+    0.1.6
+        Added basic game saving
