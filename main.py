@@ -9,7 +9,7 @@ date of creation
     July 5 2017
 
 version
-    0.1.5
+    0.1.7.1
 
 #TODO: Add a homescreen
 #TODO: Create infinite-dungeon
@@ -191,24 +191,38 @@ viewedintro = introdata['viewedintro']
 
 # Game story intro plays if not viewed before
 if viewedintro == 0:
+    # print('You stumble through a forest, sweat dripping from your brow.')
+    # time.sleep(4)
+    # print('You hear rumbling footsteps, and the clattering of metal behind you.')
+    # time.sleep(4)
+    # print('The army you fought for was ambushed...')
+    # time.sleep(4)
+    # print('Luckily, you escaped with only minor wounds.')
+    # time.sleep(4)
+    # print('Pushing your way through the trees, you discover an old stone door.')
+    # time.sleep(4)
+    # print('The door is covered in foliage and vines.')
+    # time.sleep(4)
+    # print('You push open the door and walk inside.')
+    # waiting(3*waittimer)
+    # print('The door shuts behind you. You are unable to open it.')
+    # waiting(3*waittimer)
+    # print('The only way now is forward.')
     waiting(4)
-    print('You stumble through a forest, sweat dripping from your brow.')
-    time.sleep(4)
-    print('You hear rumbling footsteps, and the clattering of metal behind you.')
-    time.sleep(4)
-    print('The army you fought for was ambushed...')
-    time.sleep(4)
-    print('Luckily, you escaped with only minor wounds.')
-    time.sleep(4)
-    print('Pushing your way through the trees, you discover an old stone door.')
-    time.sleep(4)
-    print('The door is covered in foliage and vines.')
-    time.sleep(4)
-    print('You push open the door and walk inside.')
-    waiting(3*waittimer)
-    print('The door shuts behind you. You are unable to open it.')
-    waiting(3*waittimer)
-    print('The only way now is forward.')
+    storystring = ("""You stumble through a forest, sweat dripping from your brow.
+You hear the rumble of footsteps and the clattering of metal behind you.
+The army you once fought for was ambushed...
+Luckily, you escaped with only minor wounds.
+Pushing your way through the trees, you discover an old stone door.
+The door is covered in foliage and vines.
+You push open the door and walk inside...
+The door slams behind you. You are unable to open it.
+The only way now, is forwards...""")
+    for char in storystring:
+        sys.stdout.flush()
+        time.sleep(0.07)
+        print(char, end='')
+    print('\n\n')
     waitkey()
 
     # Write to save data that intro is viewed
@@ -219,7 +233,7 @@ time.sleep(1)
 
 running = True
 play = False
-ilt = 1
+ilt = 0.15
 while(running):
     clearScreen()
     drawTitle(ilt)
@@ -228,14 +242,10 @@ while(running):
     if command == '1':
         play = True
         waittimer = 1
-        print('Starting your adventure', end='')
-        waiting(3)
         clearScreen()
     elif command == '2':
         play = True
         waittimer = 0
-        print('Starting your turbo adventure', end='')
-        waiting(3)
         clearScreen()
     elif command == 'quit' or command == 'exit':
         running = False
