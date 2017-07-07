@@ -11,118 +11,23 @@ date of creation
 version
     0.1.4
 
-changelog
-    0.0.1
-        Initial game functionality, zone storage, basic combat, basic character
-        statistics, command inputs
-
-    0.0.2
-        Added boss fights to the end of the zone
-
-    0.0.3
-        Complete code restructure
-            Moved level information to it's own file
-            Separating player information
-            Rebuilt game loop
-        Can now build multiple levels in unique ways
-        Added stat upgrades chance to drop from monster fights
-
-    0.0.4
-        4 Levels
-        Unique bosses on each floor
-        Expanded player stats
-        Loot reworked
-            - added stat gems
-            - increased potion drop rate
-        Boss doors now glow
-        Difficulty now flexes with progression
-        Added MAP functionality
-
-    0.0.5
-        Added an intro story
-        Added ability to restart the game if you lose
-        Added a shop
-        Added silver found and chests opened to stats
-        Added basic save data file to track if the intro has been viewed or not
-
-    0.1.0
-        Finalized initial code. Game functional. Beatable. Etc.
-        Still needs mad work if it's going to be 'playable'
-
-    0.1.1
-        Shop command bug fixed
-
-    0.1.2
-        Added more monster death messages
-        Added unique player death messages
-
-    0.1.3
-        Added screen updates on event conclusions
-        - Graphics, basically.
-        Changed how combat is handled
-        Added end-of-combat stats
-        Updated how some information is displayed
-
-    0.1.4
-        Added maxHP Crystals
-        Hella bunch of bug fixes
-        - Restart game? was broken.
-        - Continue to next zone was broken
-        - Some other stuff was broken
-        Fixed intro a bit
-        Added a loop layer... :S
-        Code is getting super spaghetti, prolly wanna dec some funcs for this
-
 #TODO: Add a homescreen
 #TODO: Create infinite-dungeon
 #TODO: Set up game saves
 #TODO: Declare some functions for larger chunks of the loop to make mainloop easier to read
 
 """
-# Global Imports
+# Imports
 from random import randrange as random
 import time
 import sys
 
-# Local Imports
+# Modules
 from pygridlevels import levels
 
-level = 1
-zone = { }
+# Here be functions
 
-playposx = 0
-playposy = 0
-playhp = 30
-maxhp = 50
-playpots = 3
-playsilver = 5
-
-playatk = 10
-playdef = 10
-playdmg = 10
-playaccboost = 0
-playdmgboost = 0
-
-slain = 0
-bosseskilled = 0
-chestsfound = 0
-silverfound = 0
-
-viewedintro = 0
-
-waittimer = 1
-
-#Savefile management
-try:
-    savedata = open('gamedata.txt', 'r')
-    for line in savedata:
-        viewedintro = int(line)
-
-except:
-    savedata = open('gamedata.txt', 'w')
-    savedata.write('0')
-    savedata.close()
-
+# Takes levels file and current level value to return that level's data to this script
 def generateZone(fields):
     newzone = {}
     for i in fields:
@@ -130,15 +35,19 @@ def generateZone(fields):
 
     return newzone
 
+# Used to pause functionality, for when text needs reading
 def waitkey():
     input('Press enter to continue.')
 
+# Whenever user input is required, all commands are compared in lower case
 def getCommand():
     command = input('>> ')
     command = command.lower()
     #print(command)
     return command
 
+# If a freeze-time is desired which creates dots on display while waiting
+# good for when an action is being taken but no other output is necessary
 def waiting(count):
     for i in range(count):
         print('.', end="")
@@ -146,6 +55,7 @@ def waiting(count):
         sys.stdout.flush()
     print('')
 
+# Uses this scripts 'zone' information to draw a map on screen
 def drawMap(zone, playx, playy):
     gridx = zone['grid'][0]
     gridy = zone['grid'][1]
@@ -176,20 +86,61 @@ def drawMap(zone, playx, playy):
         #print('\n       ----------', end="")
     print('')
 
+# Just clears the console display by outputting blank lines
 def clearScreen():
     for i in range(50):
         print('\n')
 
+level = 1           #what floor are we on
+zone = { }          #current floors data
+
+playposx = 0        #players x position
+playposy = 0        #players y position
+playhp = 35         #players active health, starts below max for story
+maxhp = 50          #upper limit for players health
+playpots = 3        #current number of potions held
+playsilver = 5      #current silver held by player
+
+playatk = 8        #Max value on players attack dice roll (Do I hit?)
+playdef = 6        #Max value on players defence dice roll (Do I block?)
+playdmg = 8        #Max value on players base-damage dice roll
+playaccboost = 0    #flat increase to players attack rolls
+playdmgboost = 0    #flat increase to players damage rolls
+playdefboost = 0    #flat increase to players block rolls
+playlootboost = 0   #flat increase to player silver found
+
+slain = 0           #monsters killed counter
+bosseskilled = 0    #bosses killed counter //currently unused
+chestsfound = 0     #chests opened counter
+silverfound = 0     #total silver found in game counter
+
+viewedintro = 0     #has this user viewed the intro sequence before (bool as int)
+
+waittimer = 1       #debug, allows swt0 command to eliminate waiting() timers from game
+
+# Load save data, create some if it doesn't exist
+try:
+    savedata = open('gamedata.txt', 'r')
+    for line in savedata:
+        viewedintro = int(line)
+
+except:
+    savedata = open('gamedata.txt', 'w')
+    savedata.write('0')
+    savedata.close()
 
 
-play = True
-playalive = True
+
+# Splash screen
 print('*****     Welcome to pygrid RPG      *****')
+print('*                v.0.1.4                 *')
 print('*     Created by Justyn Chaykowski       *')
 print('*                 ********               *')
 print('* If you\'d like to view the intro again  *')
 print('* type resetintro at the command prompt  *')
 print('******************************************')
+
+# Game story intro plays if not viewed before
 if viewedintro == 0:
     time.sleep(4)
     print('You stumble through a forest, sweat dripping from your brow.')
@@ -203,468 +154,523 @@ if viewedintro == 0:
     print('Pushing your way through the trees, you discover an old stone door.')
     time.sleep(4)
     print('The door is covered in foliage and vines.')
+    time.sleep(4)
+    print('You push open the door and walk inside.')
+    waiting(3*waittimer)
+    print('The door shuts behind you. You are unable to open it.')
+    waiting(3*waittimer)
+    print('The only way now is forward.')
+    time.sleep(2)
+
+    # Write to save data that intro is viewed
     with open('gamedata.txt', 'w') as savedata:
         savedata.write('1')
     savedata.close()
 time.sleep(4)
-mainloop = True
-while(mainloop):
-    while (play):
-        zone = generateZone(levels[level])
-        if level == 1 and viewedintro == 0:
-            print('You push open the door and walk inside.')
-            waiting(3*waittimer)
-            print('The door shuts behind you. You are unable to open it.')
-            waiting(3*waittimer)
-            print('The only way now is forward.')
-            time.sleep(2)
-            print('Type \'help\' at any time for help.')
-            print('Make sure to check your \'map\' and use a potion! (usepot)')
-        elif level == 1 and viewedintro == 1:
-            print('Welcome back to the dungeon.')
-            print('Remember to use \'help\' if you need help.')
-        else:
-            print('You descend deeper into the dungeon.')
-        bossmod = zone['bossmod']
-        bossname = zone['bossname']
-        playposx = 1
-        playposy = 1
-        zone[(playposx,playposy)] = 0
 
-        bosskilled = False
-        playalive = True
+play = True #loop variable
+while (play):
+    # On entering / new floor display some message
+    if level == 1 and viewedintro == 0:
+        print('Welcome to the dungeon.')
+        print('Type \'help\' at any time for help.')
+    elif level == 1 and viewedintro == 1:
+        print('Welcome back to the dungeon.')
+        print('Remember to use \'help\' if you need help.')
+    else:
+        print('You descend deeper into the dungeon.')
+    
+    # Load pertinent zone information, set player location, empty players room
+    zone = generateZone(levels[level])
+    bossname = zone['bossname']
+    lootmod = zone['lootmod']
+    potmod = zone['potmod']
+    monmod = zone['monmod']
+    bosshpmod = zone['bosshpmod']
+    bossdicemod = zone['bossdicemod']
+    bossdrop = zone['bossdrop']
+    playposx = 1
+    playposy = 1
+    zone[(playposx,playposy)] = 0
 
-        while (play and (not bosskilled) and playalive):
-            moved = False
-            waitkey()
-            clearScreen()
-            drawMap(zone, playposx, playposy)
-            print('\nHP: %i/%i  Potions: %i  Silver: %i'
-            % (playhp, maxhp, playpots, playsilver))
-            for i in range(2):
-                print('\n')
+    bosskilled = False  #loop var
+    playalive = True    #loop var
+    while (play and (not bosskilled) and playalive):
+        moved = False   #when player moves, extra actions are taken
+        waitkey()       #wait for player ready to start
 
-            #Get a command input
-            command = getCommand()
-            #print(command)
-            try:
-                if command == 'help':
-                    print('The available commands are:\nMovement: n, e, s, w // shop, map, usepot, stats, quit')
-                elif command == 'quit':
-                    play = False
-                elif command == 'kill':
-                    playhp = 1
-                elif command == 'godmode':
-                    maxhp += 1000
-                    playhp = maxhp
-                elif command == 'swt0':
-                    waittimer = 0
-                elif command == 'resetintro':
-                    with open('gamedata.txt', 'w') as savedata:
-                        savedata.write('0')
-                    savedata.close()
-                    print('The intro will play the next time you start the game.')
-                elif command == 'stats':
-                    print('Health: %i\nMax HP: %i\nAttack: %i\nDefence: %i\nPotions: %i\nSilver: %i\nBonuses: +%i Accuracy, +%i Damage' %
-                        (playhp, maxhp, playatk, playdef, playpots, playsilver, playaccboost, playdmgboost))
-                elif command == 'map':
-                    drawMap(zone, playposx, playposy)
-                elif command == 'n':
-                    if playposy < zone['grid'][1]:
-                        playposy += 1
-                        moved = True
-                        print('You move through the north door.')
-                    else:
-                        print('There is no way to continue in that direction.')
-                elif command == 's':
-                    if playposy > 0 and playposy != 1:
-                        playposy -= 1
-                        moved = True
-                        print('You move through the south door.')
-                    else:
-                        print('There is no way to continue in that direction.')
-                elif command == 'w':
-                    if playposx > 0 and playposx != 1:
-                        playposx -= 1
-                        moved = True
-                        print('You move through the west door.')
-                    else:
-                        print('There is no way to continue in that direction.')
-                elif command == 'e':
-                    if playposx < zone['grid'][0]:
-                        playposx += 1
-                        moved = True
-                        print('You move through the east door.')
-                    else:
-                        print('There is no way to continue in that direction.')
-                elif command == 'usepot':
-                    if playpots > 0 and playhp+15 <= maxhp:
-                        playpots -= 1
-                        playhp += 15
-                        print('You pop one of your health potions and restore 15 points of health.')
-                    elif playpots > 0 and playhp+15 >= maxhp:
-                        playpots -= 1
-                        playhp = maxhp
-                        print('You pop one of your health potions and are restored to max health.')
-                    else:
-                        print('You are out of healing potions!')
-                elif command == 'shop':
-                    inshop = True
-                    print('****       Dungeon SHOPPE        ****')
-                    print('** Type exit at any time to leave. **')
-                    print('You have %i silver to spend' % playsilver)
-                    print('buypot - +1 potion - 10 silver')
-                    print('healme - Refill HP to max - 35 silver')
-                    print('updmg - +1 damage - 65 silver')
-                    print('upacc - +1 accuracy - 100 silver')
-                    while inshop:
-                        command2 = getCommand()
-                        try:
-                            if command2 == 'buypot' and playsilver >= 10:
-                                print('You purchase 1 potion for 10 silver')
-                                playpots += 1
-                            elif command2 == 'healme' and playsilver >= 35:
-                                print('You are healed to max HP')
-                                playhp = maxhp
-                            elif command2 == 'updmg' and playsilver >= 65:
-                                print('Your damage is increased by 1!')
-                                playdmgboost += 1
-                            elif command2 == 'upacc' and playsilver >= 100:
-                                print('Your accuracy is increased by 1!')
-                                playaccboost += 1
-                            elif command2 == 'exit':
-                                print('** Thanks for visiting the shop **')
-                                inshop = False
-                            else:
-                                print('That is not a valid request.')
-                        except:
-                            print('Command Error.')
+        # 'graphics'
+        clearScreen()
+        drawMap(zone, playposx, playposy)
+        print('\nHP: %i/%i  Potions: %i  Silver: %i'
+        % (playhp, maxhp, playpots, playsilver))
+        for i in range(2):
+            print('\n')
+
+        command = getCommand()  #get command input
+        #print(command)
+        # All main game commands here
+        try:
+            if command == 'help':
+                print('The available commands are:\nMovement: n, e, s, w // shop, stats, quit')
+                print('Potions are used automatically in combat.')
+                print('Use your silver for potions, healing, and upgrades at the shop.')
+            elif command == 'quit':
+                play = False
+            elif command == 'kill':
+                playhp = 1
+            elif command == 'godmode':
+                maxhp += 1000
+                playhp = maxhp
+            elif command == 'swt0':
+                waittimer = 0
+            elif command == 'resetintro':
+                with open('gamedata.txt', 'w') as savedata:
+                    savedata.write('0')
+                savedata.close()
+                print('The intro will play the next time you start the game.')
+            elif command == 'stats':
+                print('Health: %i\nMax HP: %i\nAttack: %i\nDefence: %i\nPotions: %i\nSilver: %i\nBonuses: +%i Accuracy, +%i Damage, +%i Defence' %
+                    (playhp, maxhp, playatk, playdef, playpots, playsilver, playaccboost, playdmgboost, playdefboost))
+            # elif command == 'map':
+            #     drawMap(zone, playposx, playposy)
+            elif command == 'n':
+                if playposy < zone['grid'][1]:
+                    playposy += 1
+                    moved = True
+                    print('You move through the north door.')
                 else:
-                    print('The command was not recognized.')
-
-            except:
-                print('*****  ERROR 65  *****')
-                print('A COMMAND ERROR OCCURRED')
-                print('IF THIS ERROR IS UNEXPECTED PLEASE TAKE A SCREENSHOT AND SEND IT TO THE DEVELOPER')
-
-            #Determine current room state/contents
-            try:
-                state = zone[(playposx, playposy)]
-
-            except:
-                roomgen = random(6)
-                if roomgen == 0 or roomgen == 1 or roomgen == 2:
-                    state = 2
-                elif roomgen == 3 or roomgen == 4:
-                    state = 0
+                    print('There is no way to continue in that direction.')
+            elif command == 's':
+                if playposy > 0 and playposy != 1:
+                    playposy -= 1
+                    moved = True
+                    print('You move through the south door.')
                 else:
-                    state = 1
-                zone[(playposx, playposy)] = state
-
-            #print(zone[(playposx,playposy)])
-
-            #Execute Room Event
-            if moved:
-                if state == 0:
-                    print('The room is empty.')
-                elif state == 1:
-                    zone[(playposx,playposy)] = 0
-                    print('Upon entering the room you discover a small chest.')
-                    chestsfound += 1
-                    loot = random(21)
-                    waiting(3*waittimer)
-                    if (loot == 0 or loot == 1 or loot == 2 or loot == 3
-                    or loot == 4 or loot == 5 or loot == 6 or loot == 7):
-                        print('The chest contained a health potion!')
-                        playpots += 1
-                    elif loot == 8 or loot == 9:
-                        print('As you open the chest a surge of glowing red energy flows into your chest.')
-                        print('Your health was restored by 30 points!')
-                        playhp += 30
-                        if playhp > maxhp:
+                    print('There is no way to continue in that direction.')
+            elif command == 'w':
+                if playposx > 0 and playposx != 1:
+                    playposx -= 1
+                    moved = True
+                    print('You move through the west door.')
+                else:
+                    print('There is no way to continue in that direction.')
+            elif command == 'e':
+                if playposx < zone['grid'][0]:
+                    playposx += 1
+                    moved = True
+                    print('You move through the east door.')
+                else:
+                    print('There is no way to continue in that direction.')
+            # elif command == 'usepot':
+            #     if playpots > 0 and (playhp+15+potmod) <= maxhp:
+            #         healthget = 15 + potmod
+            #         playpots -= 1
+            #         playhp += healthget
+            #         print('You pop one of your health potions and restore %i points of health.' % healthget)
+            #     elif playpots > 0 and (playhp+15+potmod) >= maxhp:
+            #         playpots -= 1
+            #         playhp = maxhp
+            #         print('You pop one of your health potions and are restored to max health.')
+            #     else:
+            #         print('You are out of healing potions!')
+            elif command == 'shop':
+                # GAME SHOP AND ITS COMMANDS GO IN HERE
+                inshop = True
+                print('****       Dungeon SHOPPE        ****')
+                print('** Type exit at any time to leave. **')
+                print('You have %i silver to spend' % playsilver)
+                print('buypot - +1 potion - 10 silver')
+                print('healme - Refill HP to max - 35 silver')
+                print('updmg - +1 damage - 65 silver')
+                print('upacc - +1 accuracy - 100 silver')
+                print('updef - +1 defence - 100 silver')
+                while inshop:
+                    command2 = getCommand()
+                    try:
+                        if command2 == 'buypot' and playsilver >= 10:
+                            print('You purchase 1 potion for 10 silver')
+                            playpots += 1
+                            playsilver -= 10
+                        elif command2 == 'healme' and playsilver >= 35:
+                            print('You are healed to max HP')
                             playhp = maxhp
-                    elif loot == 10 or loot == 11:
-                        print('You find an upgrade to your equipment...')
-                        loot2 = random(2)
-                        time.sleep(1)
-                        if loot2 == 0:
-                            print('Your defence has increased!')
-                            playdef += 1
+                            playsilver -= 35
+                        elif command2 == 'updmg' and playsilver >= 65:
+                            print('Your damage is increased by 1!')
+                            playdmgboost += 1
+                            playsilver -= 65
+                        elif command2 == 'upacc' and playsilver >= 100:
+                            print('Your accuracy is increased by 1!')
+                            playaccboost += 1
+                            playsilver -= 100
+                        elif command2 == 'updef' and playsilver >= 100:
+                            print('Your defence is increased by 1!')
+                            playdefboost += 1
+                            playsilver -= 100
+                        elif command2 == 'exit':
+                            print('** Thanks for visiting the shop **')
+                            inshop = False
                         else:
-                            print('Your attack has increased!')
-                            playatk += 1
-                    elif loot == 12:
-                        print('You find a skill crystal, and consume it.')
+                            print('That is not a valid request.')
+                    except:
+                        print('Command Error.')
+            else:
+                print('The command was not recognized.')
+
+        except:
+            print('*****  ERROR  *****')
+            print('A COMMAND ERROR OCCURRED')
+            print('IF THIS ERROR IS UNEXPECTED PLEASE TAKE A SCREENSHOT AND SEND IT TO THE DEVELOPER')
+
+        #Determine current location state/contents
+        try:
+            state = zone[(playposx, playposy)]
+
+        #If the room hasn't been visited, decide what's going to be inside of it
+        except:
+            roomgen = random(6)
+            if roomgen == 0 or roomgen == 1 or roomgen == 2:
+                state = 2
+            elif roomgen == 3 or roomgen == 4:
+                state = 0
+            else:
+                state = 1
+            #Save this rooms contents to the zone dictionary
+            zone[(playposx, playposy)] = state
+
+        #print(zone[(playposx,playposy)])
+
+        #Execute Room Event
+        if moved:
+            if state == 0:
+                print('The room is empty.')
+            elif state == 1:
+                # WHEN THE PLAYER FINDS A CHEST
+                zone[(playposx,playposy)] = 0 #set room to empty
+                print('Upon entering the room you discover a small chest.')
+                chestsfound += 1
+                loot = random(1001)
+                waiting(3*waittimer)
+                if loot > 750:
+                    print('*The chest contained a health potion!')
+                    playpots += 1
+                elif loot < 100:
+                    print('*As you open the chest a surge of glowing red energy flows into your chest.')
+                    print('*Your health was restored by 30 points!')
+                    playhp += 30
+                    if playhp > maxhp:
+                        playhp = maxhp
+                elif loot > 100 and loot < 200:
+                    print('*You find an upgrade to your equipment...')
+                    loot2 = random(2)
+                    time.sleep(1)
+                    if loot2 == 0:
+                        print('*Your defence has increased!')
+                        playdef += 1
+                    else:
+                        print('*Your attack has increased!')
+                        playatk += 1
+                elif loot > 200 and loot < 300:
+                    print('*You find a skill crystal, and consume it.')
+                    loot2 = random(5)
+                    time.sleep(1)
+                    if loot2 == 0:
+                        print('*Your damage is permanently increased!')
+                        playdmgboost += 1
+                    elif loot2 == 1:
+                        print('*Your accuracy is permanently increased!')
+                        playaccboost += 1
+                    elif loot2 == 2:
+                        print('*Your MaxHP is permanenetly increased!')
+                        maxhp += 5
+                    elif loot2 == 3:
+                        print('*Your loot find abilities are permanently increased!')
+                        playlootboost += 1
+                    elif loot2 == 4:
+                        print('*Your defence is permanently increased!')
+                        playdefboost += 1
+                elif loot > 300 and loot < 550:
+                    gain = random(1,4) + lootmod + playlootboost
+                    print('*You found %i silver coins!' % gain)
+                    playsilver += gain
+                    silverfound += gain
+                else:
+                    print('The chest was empty.')
+
+            #TODO: Try and get these numbers balanced
+            elif state == 2:
+                # WHEN THE PLAYER ENCOUNTERS A MONSTER
+                zone[(playposx,playposy)] = 0   #set room to empty
+                print('As you enter the room the door shuts behind you and you discover a creature!')
+                monhp = random(4,20) + (monmod * 10)
+                mondmg = random(6,10) + monmod
+                mondice = 7 + monmod
+                waiting(8*waittimer)
+
+                #Combat Loop
+                youblocked = 0
+                mobblocked = 0
+                yourdamage = 0
+                mobdamage = 0
+                yourhits = 0
+                mobhits = 0
+                potsusedcount = 0
+
+                while (monhp > 0 and playhp > 0):
+                    if monhp > 0 and playhp > 0:
+                        if random(1,playatk) + 1 + playaccboost > random(1,mondice):
+                            hit = random(1,playdmg) + 1 + playdmgboost
+                            # print ('>> hit for %i damage' 
+                            #     % hit)
+                            monhp -= hit
+                            yourdamage += hit
+                            yourhits += 1
+                        else:
+                            mobblocked += 1
+                            # print ('>> blocked.')
+                    if monhp > 0 and playhp > 0:
+                        if random(1,mondice) > random(1, playdef) + 1 + playdefboost:
+                            hit = random(1,mondmg)
+                            # print ('<< hit for %i damage.'
+                            #     % hit)
+                            playhp -= hit
+                            mobdamage += hit
+                            mobhits += 1
+                        else:
+                            youblocked += 1
+                            # print ('<< blocked.')
+
+                    if playhp <= 0 and playpots > 0:
+                        playpots -= 1
+                        potsusedcount += 1
+                        playhp += (15 + potmod)
+                        if (playhp > maxhp):
+                            playhp = maxhp
+
+                if playhp <= 0: #player death
+                    playalive = False
+                    print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.\nYou used %i potions.'
+                        % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked, potsusedcount))
+
+                if monhp <= 0:
+                    msg = random(3)
+                    if msg == 0:
+                        print('As you finish your attack the creature howls and falls to the ground in a heap.')
+                    elif msg == 1:
+                        print('You deal the final blow, causing the creatures brain to explode over the walls.')
+                    elif msg == 2:
+                        print('The creature lunges towards you with it\'s mouth open. You lunge your sword into it\'s throat.')
+                    else:
+                        print('The creature\'s inner workings spill onto the floor as it collapses before you.')
+                    print('You search the room for loot. The door is unlocked.')
+                    slain += 1
+                    waiting(3*waittimer)
+
+                    #MONSTER DROPS
+                    loot = random(101)
+                    if loot > 75:
+                        print('*You find a health potion.')
+                        playpots += 1
+                    elif loot > 10 and loot < 20:
+                        print('*You find a skill crystal, and consume it.')
                         loot2 = random(3)
                         time.sleep(1)
                         if loot2 == 0:
-                            print('Your damage is permanently increased!')
+                            print('*Your damage is permanently increased!')
                             playdmgboost += 1
                         elif loot2 == 1:
-                            print('Your accuracy is permanently increased!')
+                            print('*Your accuracy is permanently increased!')
                             playaccboost += 1
                         elif loot2 == 2:
-                            print('Your MaxHP is permanenetly increased!')
-                            maxhp += 5
-                    elif loot == 13 or loot == 14 or loot == 15 or loot == 16:
-                        gain = random(1,4) + bossmod
-                        print('You found %i silver coins!' % gain)
-                        playsilver += gain
-                        silverfound += gain
-                    else:
-                        print('The chest was empty.')
-
-                #TODO: Try and get these numbers balanced
-                elif state == 2:
-                    zone[(playposx,playposy)] = 0
-                    print('As you enter the room the door shuts behind you and you discover a creature!')
-                    monhp = random(4,20) + (bossmod - 2) * 10
-                    mondmg = random(5,10) + (bossmod - 2)
-                    mondice = random(6,11) + (bossmod - 2)
-                    waiting(10*waittimer)
-                    # diff = int((monhp + mondmg + mondice) / 10 * (bossmod - 2))
-                    # if diff == 1:
-                    #   print('It\'s a fluffy little bunny, aww!')
-                    # if diff == 2:
-                    #   print('It\'s a giant rat!')
-                    # elif diff == 3:
-                    #   print('It\'s a goblin!')
-                    # elif diff == 4:
-                    #   print('It\'s a troll!')
-                    # else:
-                    #   print('IT\'S A DRAGON! The Door is SHUT!')
-
-                    #Combat Loop
-                    #TODO: Allow a setting to wait x seconds for combat instead
-                    youblocked = 0
-                    mobblocked = 0
-                    yourdamage = 0
-                    mobdamage = 0
-                    yourhits = 0
-                    mobhits = 0
-                    while (monhp > 0 and playhp > 0):
-                        if monhp > 0 and playhp > 0:
-                            if random(1,playatk) + playaccboost > random(1,mondice):
-                                hit = random(1,playdmg) + playdmgboost
-                                # print ('>> hit for %i damage' 
-                                #     % hit)
-                                monhp -= hit
-                                yourdamage += hit
-                                yourhits += 1
-                            else:
-                                mobblocked += 1
-                                # print ('>> blocked.')
-                        if monhp > 0 and playhp > 0:
-                            if random(1,mondice) > random(1, playdef):
-                                hit = random(1,mondmg) + (int(bossmod/2 - 0.5))
-                                # print ('<< hit for %i damage.'
-                                #     % hit)
-                                playhp -= hit
-                                mobdamage += hit
-                                mobhits += 1
-                            else:
-                                youblocked += 1
-                                # print ('<< blocked.')
-
-                    if monhp <= 0:
-                        msg = random(3)
-                        if msg == 0:
-                            print('As you finish your attack the creature howls and falls to the ground in a heap.')
-                        elif msg == 1:
-                            print('You deal the final blow, causing the creatures brain to explode over the walls.')
-                        elif msg == 2:
-                            print('The creature lunges towards you with it\'s mouth open. You lunge your sword into it\'s throat.')
+                            print('*Your defence is permanently increased!')
+                            playdefboost += 1
+                    elif loot > 0 and loot < 10:
+                        print('*You find an upgrade to your equipment...')
+                        loot2 = random(2)
+                        time.sleep(1)
+                        if loot2 == 0:
+                            print('*Your defence has increased!')
+                            playdef += 1
                         else:
-                            print('The creature\'s inner workings spill onto the floor as it collapses before you.')
-                        print('You search the room for loot. The door is unlocked.')
-                        slain += 1
-                        waiting(5*waittimer)
-                        loot = random(101)
-                        if loot > 50:
-                            print('You find a health potion.')
-                            playpots += 1
-                        elif loot > 10 and loot < 20:
-                            print('You find a skill crystal, and consume it.')
-                            loot2 = random(2)
-                            time.sleep(1)
-                            if loot2 == 0:
-                                print('Your damage is permanently increased!')
-                                playdmgboost += 1
-                            else:
-                                print('Your accuracy is permanently increased!')
-                                playaccboost += 1
-                        elif loot > 0 and loot < 10:
-                            print('You find an upgrade to your equipment...')
-                            loot2 = random(2)
-                            time.sleep(1)
-                            if loot2 == 0:
-                                print('Your defence has increased!')
-                                playdef += 1
-                            else:
-                                print('Your attack has increased!')
-                                playatk += 1
-                        else:
-                            print('You do not discover any items.')
-                        loot = random(1,3) + bossmod
-                        print('You find %i silver on the creatures person.' % loot)
-                        playsilver += loot
-                        silverfound += loot
-                        print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.'
-                            % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked))
-                    if playhp <= 0:
-                        playalive = False
-                        print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.'
-                            % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked))
-
-                elif state == 99:
-                    zone[(playposx,playposy)] = 0
-                    print('As you enter the room a cold chill runs up your spine.')
-                    time.sleep(3)
-                    print('%s enters from the shadows.' % bossname)
-                    monhp = 15*bossmod
-                    mondice = 7+bossmod
-
-                    yourdamage = 0
-                    youblocked = 0
-                    mobdamage = 0
-                    mobblocked = 0
-                    yourhits = 0
-                    mobhits = 0
-
-                    waiting(10*waittimer)
-                    while (monhp > 0 and playhp > 0):
-                        if monhp > 0 and playhp > 0:
-                            if random(1,playatk) + playaccboost > random(1,mondice):
-                                hit = random(1,playdmg) + playdmgboost
-                                # print ('>> hit for %i damage' 
-                                #     % hit)
-                                monhp -= hit
-                                yourdamage += hit
-                                yourhits += 1
-                            else:
-                                # print ('>> blocked.')
-                                mobblocked += 1
-                        if monhp > 0 and playhp > 0:
-                            if random(1,mondice) > random(1, playdef):
-                                hit = random(1,mondice)
-                                # print ('<< hit for %i damage.'
-                                #     % hit)
-                                playhp -= hit
-                                mobdamage += hit
-                                mobhits += 1
-                            else:
-                                # print ('<< blocked.')
-                                youblocked += 1
-                    if monhp <= 0:
-                        print('You have conquered %s! A great energy overwhelms you.'
-                            % bossname)
-                        print('Stats increased. HP restored to max.')
-                        print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.'
-                            % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked))
-                        maxhp += 10
-                        playhp = maxhp
-                        playdef += 2
-                        playatk += 2
-                        playdmgboost += 2
-                        bosskilled = True
-                        level += 1
-                    if playhp <= 0:
-                        playalive = False
-                        print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.'
-                            % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked))
-
-                try:
-                    if zone[(playposx+1,playposy)] == 99:
-                        print('|||~ The door to the east glows with a bloody aura. ~|||')
-                except:
-                    pass
-                try:
-                    if zone[(playposx-1,playposy)] == 99:
-                        print('|||~ The door to the west glows with a bloody aura. ~|||')
-                except:
-                    pass
-                try:
-                    if zone[(playposx,playposy+1)] == 99:
-                        print('|||~ The door to the north glows with a bloody aura. ~|||')
-                except:
-                    pass
-                try:
-                    if zone[(playposx,playposy-1)] == 99:
-                        print('|||~ The door to the south glows with a bloody aura. ~|||')
-                except:
-                    pass
-                    
-
-                if playhp <= 0:
-                    playalive = False
-
-                    endmsg = random(4)
-                    if endmsg == 0 and playhp <= 0:
-                        print('The creature roars as it\'s arm crashes onto your head, crushing your spine.')
-                    elif endmsg == 1 and playhp <= 0:
-                        print('You feel a wash of cold come over you as the flavor of iron fills your mouth.')
-                        print('Your mouth washes the floor with blood.')
-                    elif endmsg == 2 and playhp <= 0:
-                        print('You open your eyes to a bright shining light, you peer into the eyes of an angel.')
-                        print('The last thing you remember is seeing your own ass for the first time.')
-                    elif endmsg == 3 and playhp <= 0:
-                        print('You lift your head from your shield to see the foul creature\'s jaw bearing down on you.')
-                        print('It\'s breath smells foul, as it takes a bite out of your face.')
-                    elif endmsg == 4 and playhp <= 0:
-                        print('The creature disappears.')
-                        waiting(3*waittimer)
-                        print('Suddenly you lose all feeling below your neck as you hear the loud snap of your spine breaking.')
+                            print('*Your attack has increased!')
+                            playatk += 1
                     else:
-                        pass
-                    print('Your adventure is over. Your final stats were:')
+                        print('*You do not discover any items.')
+                    loot = random(1,3) + lootmod + playlootboost
+                    print('*You find %i silver on the creatures person.' % loot)
+                    playsilver += loot
+                    silverfound += loot
+                    print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.\nYou used %i potions.'
+                        % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked, potsusedcount))
+                
+
+            elif state == 99:
+                #WHEN PLAYER ENCOUNTERS THE BOSS ROOM
+                zone[(playposx,playposy)] = 0   #set room to empty
+                print('As you enter the room a cold chill runs up your spine.')
+                time.sleep(3)
+                print('%s enters from the shadows.' % bossname)
+                monhp = 15*bosshpmod
+                mondice = 7+bossdicemod
+
+                yourdamage = 0
+                youblocked = 0
+                mobdamage = 0
+                mobblocked = 0
+                yourhits = 0
+                mobhits = 0
+                potsusedcount = 0
+
+                waiting(10*waittimer)
+                while (monhp > 0 and playhp > 0):
+                    if monhp > 0 and playhp > 0:
+                        if random(1,playatk) + 1 + playaccboost > random(1,mondice):
+                            hit = random(1,playdmg) + 1 + playdmgboost
+                            # print ('>> hit for %i damage' 
+                            #     % hit)
+                            monhp -= hit
+                            yourdamage += hit
+                            yourhits += 1
+                        else:
+                            # print ('>> blocked.')
+                            mobblocked += 1
+                    if monhp > 0 and playhp > 0:
+                        if random(1,mondice) > random(1, playdef) + 1 + playdefboost:
+                            hit = random(1,mondice)
+                            # print ('<< hit for %i damage.'
+                            #     % hit)
+                            playhp -= hit
+                            mobdamage += hit
+                            mobhits += 1
+                        else:
+                            # print ('<< blocked.')
+                            youblocked += 1
+
+                    if playhp <= 0 and playpots > 0:
+                        playpots -= 1
+                        potsusedcount += 1
+                        playhp += (15 + potmod)
+                        if (playhp > maxhp):
+                            playhp = maxhp
+
+                if playhp <= 0 and playpots <= 0: #player death
                     playalive = False
-                    print('Attack: %i\nDefence: %i\nPotions: %i\nSilver: %i\nMonsters Slain: %i\nChests Opened: %i\nSilver Found: %i\nBonuses: +%i Accuracy, +%i Damage' %
-                        (playatk, playdef, playpots, playsilver, slain, chestsfound, silverfound, playaccboost, playdmgboost))
+                    print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.\nYou used %i potions.'
+                        % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked, potsusedcount))
 
-            if playalive == False:
-                play = False
-    print('Would you like to play again? (Y/N)')
-    gotanswer = False
-    while not gotanswer:
-        command = getCommand()
-        try:
-            if command == 'y':
-                play = True
-                playalive = True
-                level = 1
-                zone = { }
+                if monhp <= 0:
+                    print('You have conquered %s! A great energy overwhelms you.'
+                        % bossname)
+                    print('*Stats increased. HP restored to max. %i silver gained.' % bossdrop)
+                    print('Combat Log:\nYou Dealt %i Damage in %i hits and were blocked %i times.\nYou took %i damage in %i hits and blocked %i times.\nYou used %i potions.'
+                        % (yourdamage, yourhits, mobblocked, mobdamage, mobhits, youblocked, potsusedcount))
+                    # When a boss is killed, player 'levels', stats increase
+                    maxhp += 10
+                    playhp = maxhp
+                    playdef += 2
+                    playatk += 2
+                    playdmgboost += 2
+                    playsilver += bossdrop
+                    bosskilled = True
+                    level += 1  #move player to next floor in dungeon
 
-                playposx = 0
-                playposy = 0
-                playhp = 30
-                maxhp = 50
-                playpots = 3
-                silver = 5
+            # Check if the player is outside of the boss room, if so, notify them.
+            try:
+                if zone[(playposx+1,playposy)] == 99:
+                    print('|||~ The door to the east glows with a bloody aura. ~|||')
+            except:
+                pass
+            try:
+                if zone[(playposx-1,playposy)] == 99:
+                    print('|||~ The door to the west glows with a bloody aura. ~|||')
+            except:
+                pass
+            try:
+                if zone[(playposx,playposy+1)] == 99:
+                    print('|||~ The door to the north glows with a bloody aura. ~|||')
+            except:
+                pass
+            try:
+                if zone[(playposx,playposy-1)] == 99:
+                    print('|||~ The door to the south glows with a bloody aura. ~|||')
+            except:
+                pass
+                
+            # EVENT: Player Death
+            if playhp <= 0:
+                playalive = False
 
-                playatk = 10
-                playdef = 11
-                playdmg = 10
-                playaccboost = 0
-                playdmgboost = 0
+                endmsg = random(4)
+                if endmsg == 0 and playhp <= 0:
+                    print('The creature roars as it\'s arm crashes onto your head, crushing your spine.')
+                elif endmsg == 1 and playhp <= 0:
+                    print('You feel a wash of cold come over you as the flavor of iron fills your mouth.')
+                    print('Your mouth washes the floor with blood.')
+                elif endmsg == 2 and playhp <= 0:
+                    print('You open your eyes to a bright shining light, you peer into the eyes of an angel.')
+                    print('The last thing you remember is seeing your own ass for the first time.')
+                elif endmsg == 3 and playhp <= 0:
+                    print('You lift your head from your shield to see the foul creature\'s jaw bearing down on you.')
+                    print('It\'s breath smells foul, as it takes a bite out of your face.')
+                elif endmsg == 4 and playhp <= 0:
+                    print('The creature disappears.')
+                    waiting(3*waittimer)
+                    print('Suddenly you lose all feeling below your neck as you hear the loud snap of your spine breaking.')
+                else:
+                    pass
+                print('*Your adventure is over. Your final stats were:')
+                playalive = False
+                print('Attack: %i\nDefence: %i\nPotions: %i\nSilver: %i\nMonsters Slain: %i\nChests Opened: %i\nSilver Found: %i\nBonuses: +%i Accuracy, +%i Damage, +%i Defence' %
+                    (playatk, playdef, playpots, playsilver, slain, chestsfound, silverfound, playaccboost, playdmgboost, playdefboost))
 
-                slain = 0
-                bosseskilled = 0
-                chestsfound = 0
-                silverfound = 0
+    # Ask player if they want to start over before exiting play loop
+    if playalive == False or play == False:
+        print('Would you like to play again? (Y/N)')
+        gotanswer = False
+        while not gotanswer:
+            command = getCommand()
+            try:
+                if command == 'y':
+                    # Reset main game values to defaults
+                    play = True
+                    playalive = True
+                    level = 1
+                    zone = { }
 
-                gotanswer = True
+                    playposx = 0
+                    playposy = 0
+                    playhp = 35
+                    maxhp = 50
+                    playpots = 3
+                    playsilver = 5
 
-            elif command == 'n':
+                    playatk = 10
+                    playdef = 11
+                    playdmg = 10
+                    playaccboost = 0
+                    playdmgboost = 0
+                    playlootboost = 0
+                    playdefboost = 0
+
+                    slain = 0
+                    bosseskilled = 0
+                    chestsfound = 0
+                    silverfound = 0
+
+                    gotanswer = True
+
+                elif command == 'n':
+                    # Exit the game
+                    play = False
+                    gotanswer = True
+                else:
+                    print('Command not recognized.')
+            except:
+                print('Command Error!! Forcing Exit. Restart the game to play again.')
                 play = False
                 gotanswer = True
-            else:
-                print('Command not recognized.')
-        except:
-            print('Command Error!! Forcing Exit. Restart the game to play again.')
-            play = False
-            gotanswer = True
-    if play == False:
-        mainloop = False
+
 
 #ENDGAME
 

@@ -62,3 +62,25 @@ changelog
 
     0.1.4.1
         Moved changelog to it's own file
+
+    0.1.5
+        Fixed the bug that led to me adding a loop layer before. Damned whitespace >_>
+        Changed some balancing stuff
+            - Added variables for dice modifiers for:
+                - Bosses
+                - Mobs
+                - Loot (increased silver gained)
+                - Potion Healing Potential
+            - Changed how monster stats are determined
+            - Monster accuracy and defence now starts as flat 8 + mod instead of being random
+            - Monster minimum damage increased drastically
+            #TODO: Further balancing is likely required
+        Added comments to the code
+        Moved some code around
+        * It's still spaghetti, but it should be easier to understand
+        Potions are now used automatically in combat if health falls below 1
+        Shop now reduces your silver when you buy stuff from it
+            - Imagine that, eh? XD
+
+        #TODO: Needs playtesting to figure out how the balancing is...
+        COMMAND: swt0 removes the wait timer from the game for SPEEDY play!~~

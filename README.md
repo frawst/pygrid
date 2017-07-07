@@ -12,7 +12,5 @@ Please include the name of the project in the subject line.
 
 ## Current TO-DO's
 - Add a homescreen
-- Add graphics: Map, Stats, Inventory
 - Create infinite-dungeon functionality
 - Adjust combat balance
-- Create an option to remove combat logging, and instead wait a fixed period of time before simply displaying the results of combat.
