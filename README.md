@@ -16,3 +16,4 @@ Please include the name of the project in the subject line.
 - Add a win-game state
 - Adjust main loop logic to center around the home screen, using functional code to handle gameplay instead of while loop nests
 - Moar Story
+- Allow controls/commands to be changed, either with a .config-esque system, or through in-game menus.
