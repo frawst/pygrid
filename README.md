@@ -1,6 +1,8 @@
 # pygrid
 Python grid based mini-rpg that runs from command prompt
+
 Requires Python 3.x and numpy package
+
 Recommended Python 3.6
 
 ## Contributing
