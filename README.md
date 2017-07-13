@@ -11,6 +11,8 @@ Business inquiries, Bug reports, and feature requests/recommendations can be sen
 Please include the name of the project in the subject line.
 
 ## Current TO-DO's
-- Add a homescreen
 - Create infinite-dungeon functionality
 - Adjust combat balance
+- Add a win-game state
+- Adjust main loop logic to center around the home screen, using functional code to handle gameplay instead of while loop nests
+- Moar Story
